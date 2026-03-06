@@ -82,7 +82,31 @@ export default function Navbar() {
           </div>
 
           {/* CTA Buttons / Profile Icon */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            {/* Mobile Profile Icon */}
+            {isLoggedIn && (
+              <Link href="/profile" className="md:hidden" title="View Profile">
+                {userAvatar ? (
+                  <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-slate-600">
+                    <Image 
+                      src={userAvatar} 
+                      alt={userName}
+                      width={36}
+                      height={36}
+                      className="w-full h-full object-cover"
+                      unoptimized
+                    />
+                  </div>
+                ) : (
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center text-white font-bold text-sm">
+                    {userName.charAt(0).toUpperCase()}
+                  </div>
+                )}
+              </Link>
+            )}
+
+            {/* Desktop Profile / Auth Buttons */}
+            <div className="hidden md:flex items-center gap-3">
             {isLoggedIn ? (
               <Link href="/profile" className="flex items-center gap-2 group" title="View Profile">
                 {userAvatar ? (
@@ -112,6 +136,7 @@ export default function Navbar() {
                 </Link>
               </>
             )}
+          </div>
           </div>
 
           {/* Mobile menu button */}
