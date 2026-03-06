@@ -1,6 +1,7 @@
 import DashboardSidebar from "@/components/DashboardSidebar";
 import Link from "next/link";
 
+
 const subjectPerformance = [
   { subject: "Mathematics", score: 82, trend: "+5%", color: "from-indigo-500 to-indigo-600" },
   { subject: "Science", score: 74, trend: "+2%", color: "from-cyan-500 to-cyan-600" },
@@ -199,7 +200,7 @@ export default function StudentDashboard() {
         </div>
 
         {/* AI Recommendations */}
-        <div className="card p-6">
+        <div className="card p-6 mb-6">
           <div className="flex items-center gap-2 mb-5">
             <span className="text-xl">🤖</span>
             <h2 className="text-lg font-bold text-white">AI Recommendations</h2>
@@ -231,6 +232,67 @@ export default function StudentDashboard() {
                   Practice now →
                 </Link>
               </div>
+            ))}
+          </div>
+        </div>
+
+        {/* AI Study Assistant */}
+        <div className="card p-6 border-indigo-500/30" style={{ background: "linear-gradient(135deg, rgba(99,102,241,0.08), rgba(6,182,212,0.05))" }}>
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center text-xl">
+                🤖
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-white">AI Study Assistant</h2>
+                <p className="text-slate-400 text-xs">Upload notes · Get summaries · Ask questions · Take quizzes</p>
+              </div>
+            </div>
+            <Link href="/study-assistant" className="btn-primary flex items-center gap-2 text-sm">
+              Open Assistant →
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[
+              {
+                href: "/study-assistant",
+                icon: "📁",
+                label: "Upload Notes",
+                desc: "PDF, DOCX, TXT",
+                color: "from-indigo-500/20 to-indigo-600/10 border-indigo-500/30",
+              },
+              {
+                href: "/study-assistant",
+                icon: "📋",
+                label: "View Summary",
+                desc: "AI-generated overview",
+                color: "from-cyan-500/20 to-cyan-600/10 border-cyan-500/30",
+              },
+              {
+                href: "/study-assistant",
+                icon: "💬",
+                label: "Ask AI Questions",
+                desc: "Chat with your notes",
+                color: "from-emerald-500/20 to-emerald-600/10 border-emerald-500/30",
+              },
+              {
+                href: "/study-assistant",
+                icon: "🧠",
+                label: "Generate Quiz",
+                desc: "Test your knowledge",
+                color: "from-purple-500/20 to-purple-600/10 border-purple-500/30",
+              },
+            ].map((item) => (
+              <Link
+                key={item.label}
+                href={item.href}
+                className={`p-4 rounded-xl border bg-gradient-to-br ${item.color} hover:scale-105 transition-transform text-center block`}
+              >
+                <div className="text-2xl mb-2">{item.icon}</div>
+                <div className="text-white text-sm font-semibold">{item.label}</div>
+                <div className="text-slate-400 text-xs mt-1">{item.desc}</div>
+              </Link>
             ))}
           </div>
         </div>

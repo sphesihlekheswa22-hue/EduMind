@@ -15,6 +15,7 @@ The template has been transformed into a full EduMind AI adaptive learning platf
 - [x] Memory bank documentation
 - [x] Recipe system for common features
 - [x] **EduMind AI full platform build** (all pages, components, and modules)
+- [x] **AI Study Assistant feature** — file upload, AI summarization, chat tutor, quiz generation
 
 ## Current Structure
 
@@ -31,7 +32,12 @@ The template has been transformed into a full EduMind AI adaptive learning platf
 | `src/app/quiz/page.tsx` | AI adaptive quiz: subject select → quiz → results | ✅ Done |
 | `src/app/feedback/page.tsx` | AI personalised feedback: weak/strong topics, resources, history | ✅ Done |
 | `src/components/Navbar.tsx` | Public navbar with mobile menu | ✅ Done |
-| `src/components/DashboardSidebar.tsx` | Role-aware sidebar (student/teacher/admin) | ✅ Done |
+| `src/components/DashboardSidebar.tsx` | Role-aware sidebar (student/teacher/admin) with AI Study Assistant link | ✅ Done |
+| `src/app/study-assistant/page.tsx` | AI Study Assistant: file upload, summary, chat, quiz tabs | ✅ Done |
+| `src/app/api/study-assistant/upload/route.ts` | API: file upload + text extraction (PDF/DOCX/TXT, 20MB limit) | ✅ Done |
+| `src/app/api/study-assistant/summarize/route.ts` | API: AI summarization — summary, key concepts, important topics | ✅ Done |
+| `src/app/api/study-assistant/chat/route.ts` | API: AI chat tutor — context-aware Q&A based on uploaded notes | ✅ Done |
+| `src/app/api/study-assistant/generate-quiz/route.ts` | API: AI quiz generation — 5–8 MCQs with explanations | ✅ Done |
 
 ## Architecture Implemented
 
@@ -77,3 +83,4 @@ The template has been transformed into a full EduMind AI adaptive learning platf
 |------|---------|
 | Initial | Template created with base setup |
 | 2025-03-06 | Full EduMind AI platform built — 12 files, 2788 lines added |
+| 2026-03-06 | AI Study Assistant feature added — 6 new files (page + 4 API routes + sidebar update + dashboard section) |
