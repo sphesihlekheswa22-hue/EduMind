@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { uploadedFiles } from "../upload/route";
+import { uploadedFiles } from "@/lib/storage/uploaded-files";
 
 interface SummaryResult {
   summary: string;

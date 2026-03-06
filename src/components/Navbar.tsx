@@ -3,12 +3,14 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
+import NotificationBell from "./NotificationBell";
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState("");
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -24,10 +26,12 @@ export default function Navbar() {
         setIsLoggedIn(true);
         setUserName(parsed.name || "User");
         setUserAvatar(parsed.avatar || null);
+        setUserId(parsed.id || null);
       } else if (user) {
         const parsed = JSON.parse(user);
         setIsLoggedIn(true);
         setUserName(parsed.name || "User");
+        setUserId(parsed.id || null);
       }
     } catch {
       // Ignore localStorage errors
@@ -85,58 +89,74 @@ export default function Navbar() {
           <div className="flex items-center gap-2">
             {/* Mobile Profile Icon */}
             {isLoggedIn && (
-              <Link href="/profile" className="md:hidden" title="View Profile">
-                {userAvatar ? (
-                  <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-slate-600">
-                    <Image 
-                      src={userAvatar} 
-                      alt={userName}
-                      width={36}
-                      height={36}
-                      className="w-full h-full object-cover"
-                      unoptimized
-                    />
-                  </div>
-                ) : (
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center text-white font-bold text-sm">
-                    {userName.charAt(0).toUpperCase()}
-                  </div>
+              <>
+                {userId && (
+                  <Link href="/dashboard/notifications" className="md:hidden" title="Notifications">
+                    <div className="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center text-white">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                      </svg>
+                    </div>
+                  </Link>
                 )}
-              </Link>
+                <Link href="/profile" className="md:hidden" title="View Profile">
+                  {userAvatar ? (
+                    <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-slate-600">
+                      <Image 
+                        src={userAvatar} 
+                        alt={userName}
+                        width={36}
+                        height={36}
+                        className="w-full h-full object-cover"
+                        unoptimized
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center text-white font-bold text-sm">
+                      {userName.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                </Link>
+              </>
             )}
 
             {/* Desktop Profile / Auth Buttons */}
             <div className="hidden md:flex items-center gap-3">
-            {isLoggedIn ? (
-              <Link href="/profile" className="flex items-center gap-2 group" title="View Profile">
-                {userAvatar ? (
-                  <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-slate-600 group-hover:border-indigo-500 transition-colors">
-                    <Image 
-                      src={userAvatar} 
-                      alt={userName}
-                      width={36}
-                      height={36}
-                      className="w-full h-full object-cover"
-                      unoptimized
-                    />
-                  </div>
-                ) : (
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center text-white font-bold text-sm group-hover:ring-2 ring-indigo-500/50 transition-all">
-                    {userName.charAt(0).toUpperCase()}
-                  </div>
-                )}
-              </Link>
-            ) : (
-              <>
-                <Link href="/login" className="btn-secondary text-sm py-2 px-4">
-                  Log In
-                </Link>
-                <Link href="/register" className="btn-primary text-sm py-2 px-4">
-                  Get Started Free
-                </Link>
-              </>
-            )}
-          </div>
+              {isLoggedIn ? (
+                <>
+                  {/* Notification Bell */}
+                  {userId && <NotificationBell userId={userId} />}
+                  
+                  <Link href="/profile" className="flex items-center gap-2 group" title="View Profile">
+                    {userAvatar ? (
+                      <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-slate-600 group-hover:border-indigo-500 transition-colors">
+                        <Image 
+                          src={userAvatar} 
+                          alt={userName}
+                          width={36}
+                          height={36}
+                          className="w-full h-full object-cover"
+                          unoptimized
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center text-white font-bold text-sm group-hover:ring-2 ring-indigo-500/50 transition-all">
+                        {userName.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link href="/login" className="btn-secondary text-sm py-2 px-4">
+                    Log In
+                  </Link>
+                  <Link href="/register" className="btn-primary text-sm py-2 px-4">
+                    Get Started Free
+                  </Link>
+                </>
+              )}
+            </div>
           </div>
 
           {/* Mobile menu button */}
@@ -163,25 +183,35 @@ export default function Navbar() {
             <Link href="/#pricing" className="text-slate-400 hover:text-white text-sm py-2">Pricing</Link>
             <div className="flex flex-col gap-2 pt-2">
               {isLoggedIn ? (
-                <Link href="/profile" className="flex items-center justify-center gap-2 py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors">
-                  {userAvatar ? (
-                    <div className="w-6 h-6 rounded-full overflow-hidden">
-                      <Image 
-                        src={userAvatar} 
-                        alt={userName}
-                        width={24}
-                        height={24}
-                        className="w-full h-full object-cover"
-                        unoptimized
-                      />
-                    </div>
-                  ) : (
-                    <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-xs">
-                      {userName.charAt(0).toUpperCase()}
-                    </div>
+                <>
+                  {userId && (
+                    <Link href="/dashboard/notifications" className="flex items-center justify-center gap-2 py-2 px-4 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                      </svg>
+                      <span className="text-sm font-medium">Notifications</span>
+                    </Link>
                   )}
-                  <span className="text-sm font-medium">My Profile</span>
-                </Link>
+                  <Link href="/profile" className="flex items-center justify-center gap-2 py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors">
+                    {userAvatar ? (
+                      <div className="w-6 h-6 rounded-full overflow-hidden">
+                        <Image 
+                          src={userAvatar} 
+                          alt={userName}
+                          width={24}
+                          height={24}
+                          className="w-full h-full object-cover"
+                          unoptimized
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-xs">
+                        {userName.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <span className="text-sm font-medium">My Profile</span>
+                  </Link>
+                </>
               ) : (
                 <>
                   <Link href="/login" className="btn-secondary text-sm text-center">Log In</Link>

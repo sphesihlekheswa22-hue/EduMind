@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { uploadedFiles } from "@/lib/storage/uploaded-files";
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
 const ALLOWED_TYPES = [
@@ -7,9 +8,6 @@ const ALLOWED_TYPES = [
   "text/plain",
 ];
 const ALLOWED_EXTENSIONS = [".pdf", ".docx", ".txt"];
-
-// In-memory store for demo purposes (in production, use a database)
-export const uploadedFiles: Map<string, { name: string; content: string; uploadedAt: string }> = new Map();
 
 function extractTextFromTxt(buffer: ArrayBuffer): string {
   const decoder = new TextDecoder("utf-8");

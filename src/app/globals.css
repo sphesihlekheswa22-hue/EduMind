@@ -79,6 +79,21 @@ body {
   background: rgba(99, 102, 241, 0.1);
 }
 
+.btn-danger {
+  background: transparent;
+  color: #ef4444;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  border: 1px solid #ef4444;
+  cursor: pointer;
+}
+
+.btn-danger:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
 .input-field {
   background: #0f172a;
   border: 1px solid #334155;

@@ -13,6 +13,8 @@ interface DashboardSidebarProps {
   role: "student" | "teacher" | "admin";
   userName?: string;
   userEmail?: string;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
 const studentNav: NavItem[] = [
@@ -22,6 +24,15 @@ const studentNav: NavItem[] = [
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+      </svg>
+    ),
+  },
+  {
+    label: "Notifications",
+    href: "/dashboard/notifications",
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
       </svg>
     ),
   },
@@ -83,6 +94,15 @@ const teacherNav: NavItem[] = [
     ),
   },
   {
+    label: "Notifications",
+    href: "/dashboard/notifications",
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+      </svg>
+    ),
+  },
+  {
     label: "Profile",
     href: "/profile",
     icon: (
@@ -131,6 +151,15 @@ const adminNav: NavItem[] = [
     ),
   },
   {
+    label: "Notifications",
+    href: "/dashboard/notifications",
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+      </svg>
+    ),
+  },
+  {
     label: "Profile",
     href: "/profile",
     icon: (
@@ -171,7 +200,7 @@ const adminNav: NavItem[] = [
 
 const navMap = { student: studentNav, teacher: teacherNav, admin: adminNav };
 
-export default function DashboardSidebar({ role, userName = "User", userEmail = "" }: DashboardSidebarProps) {
+export default function DashboardSidebar({ role, userName = "User", userEmail = "", isOpen = false, onClose }: DashboardSidebarProps) {
   const pathname = usePathname();
   const navItems = navMap[role];
 
@@ -188,7 +217,16 @@ export default function DashboardSidebar({ role, userName = "User", userEmail = 
   };
 
   return (
-    <aside className="w-64 min-h-screen bg-slate-900 border-r border-slate-800 flex flex-col">
+    <>
+      {/* Mobile Overlay */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={onClose}
+        />
+      )}
+
+      <aside className={`w-64 min-h-screen bg-slate-900 border-r border-slate-800 flex flex-col fixed lg:relative z-50 transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
       {/* Logo */}
       <div className="p-6 border-b border-slate-800">
         <Link href="/" className="flex items-center gap-2">
@@ -241,5 +279,6 @@ export default function DashboardSidebar({ role, userName = "User", userEmail = 
         </Link>
       </div>
     </aside>
+    </>
   );
 }
