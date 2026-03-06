@@ -13,8 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Next.js Template",
-  description: "A minimal Next.js starter template",
+  title: "EduMind AI – Adaptive Learning Platform",
+  description:
+    "AI-powered adaptive learning platform with personalised quizzes, real-time feedback, and intelligent progress tracking for students, teachers, and parents.",
 };
 
 export default function RootLayout({
