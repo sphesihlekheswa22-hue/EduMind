@@ -54,6 +54,12 @@ export default function StudyAssistantPage() {
   const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Text input state
+  const [textInput, setTextInput] = useState("");
+  const [textTitle, setTextTitle] = useState("");
+  const [isProcessingText, setIsProcessingText] = useState(false);
+  const [textError, setTextError] = useState("");
+
   // Summary state
   const [summaryData, setSummaryData] = useState<SummaryData | null>(null);
   const [isSummarizing, setIsSummarizing] = useState(false);
@@ -165,6 +171,57 @@ export default function StudyAssistantPage() {
   const onFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) handleFileUpload(file);
+  };
+
+  // ─── Text Input ─────────────────────────────────────────────────────────────
+
+  const handleTextSubmit = async () => {
+    if (!textInput.trim() || textInput.trim().length < 50) {
+      setTextError("Please enter at least 50 characters of text.");
+      return;
+    }
+
+    setTextError("");
+    setIsProcessingText(true);
+
+    try {
+      const res = await fetch("/api/study-assistant/text", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: textInput, title: textTitle || "Pasted Notes" }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setTextError(data.error || "Failed to process text. Please try again.");
+        return;
+      }
+
+      setUploadedFile({
+        fileId: data.fileId,
+        fileName: data.fileName,
+        fileSize: data.contentLength,
+      });
+
+      // Reset downstream state
+      setSummaryData(null);
+      setChatHistory([]);
+      setQuizPhase("idle");
+      setQuizQuestions([]);
+      setActiveTab("summary");
+
+      // Clear text input
+      setTextInput("");
+      setTextTitle("");
+
+      // Auto-trigger summarization
+      await triggerSummarize(data.fileId);
+    } catch {
+      setTextError("Network error. Please check your connection and try again.");
+    } finally {
+      setIsProcessingText(false);
+    }
   };
 
   // ─── Chat ───────────────────────────────────────────────────────────────────
@@ -306,7 +363,7 @@ export default function StudyAssistantPage() {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-white">AI Study Assistant</h1>
-              <p className="text-slate-400 text-sm">Upload your notes and get AI-powered summaries, explanations, and quizzes</p>
+              <p className="text-slate-400 text-sm">Paste your notes or upload files — get AI-powered summaries, explanations, and quizzes</p>
             </div>
           </div>
 
@@ -355,7 +412,71 @@ export default function StudyAssistantPage() {
 
         {/* ── Tab: Upload ── */}
         {activeTab === "upload" && (
-          <div className="max-w-2xl">
+          <div className="max-w-3xl space-y-8">
+            {/* Text Input Section */}
+            <div className="card p-6">
+              <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
+                <span>📝</span> Paste Your Notes
+              </h3>
+              <p className="text-slate-400 text-sm mb-4">
+                Directly paste your study notes or lecture text for instant AI analysis. Best results with 100+ words.
+              </p>
+              
+              <div className="space-y-4">
+                <input
+                  type="text"
+                  placeholder="Title (optional): e.g., Biology Chapter 1 Notes"
+                  value={textTitle}
+                  onChange={(e) => setTextTitle(e.target.value)}
+                  className="input-field w-full"
+                  disabled={isProcessingText}
+                />
+                
+                <textarea
+                  placeholder="Paste your notes here... (at least 50 characters)"
+                  value={textInput}
+                  onChange={(e) => setTextInput(e.target.value)}
+                  className="input-field w-full h-48 resize-none"
+                  disabled={isProcessingText}
+                />
+
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500 text-xs">
+                    {textInput.trim().length} characters ({textInput.trim().split(/\s+/).filter(Boolean).length} words)
+                  </span>
+                  <button
+                    onClick={handleTextSubmit}
+                    disabled={isProcessingText || textInput.trim().length < 50}
+                    className="btn-primary px-6 py-2.5"
+                  >
+                    {isProcessingText ? (
+                      <span className="flex items-center gap-2">
+                        <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        Processing...
+                      </span>
+                    ) : (
+                      "Analyze Text"
+                    )}
+                  </button>
+                </div>
+
+                {textError && (
+                  <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl flex items-start gap-2">
+                    <span className="text-red-400">⚠️</span>
+                    <p className="text-red-300 text-sm">{textError}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Divider */}
+            <div className="flex items-center gap-4">
+              <div className="flex-1 h-px bg-slate-700" />
+              <span className="text-slate-500 text-sm">or upload a file</span>
+              <div className="flex-1 h-px bg-slate-700" />
+            </div>
+
+            {/* File Upload Section */}
             <div
               onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
               onDragLeave={() => setIsDragging(false)}
@@ -413,17 +534,17 @@ export default function StudyAssistantPage() {
             )}
 
             {/* Instructions */}
-            <div className="mt-6 card p-6">
+            <div className="card p-6">
               <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
                 <span>💡</span> How it works
               </h3>
               <div className="space-y-3">
                 {[
-                  { step: "1", title: "Upload your notes", desc: "Upload PDF, DOCX, or TXT study materials" },
+                  { step: "1", title: "Paste your notes or upload a file", desc: "Copy-paste text directly OR upload PDF/DOCX/TXT files" },
                   { step: "2", title: "AI processes your content", desc: "Our AI extracts text and identifies key concepts" },
                   { step: "3", title: "Get a smart summary", desc: "View a concise summary with key topics highlighted" },
                   { step: "4", title: "Ask questions", desc: "Chat with AI about your notes like a personal tutor" },
-                  { step: "5", title: "Take a quiz", desc: "Generate and take a quiz based on your uploaded material" },
+                  { step: "5", title: "Take a quiz", desc: "Generate and take a quiz based on your material" },
                 ].map((item) => (
                   <div key={item.step} className="flex items-start gap-3">
                     <div className="w-6 h-6 rounded-full bg-indigo-500/20 text-indigo-400 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
