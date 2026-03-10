@@ -217,6 +217,114 @@ def role_required(*roles):
 
 # ==================== DATABASE ====================
 
+def seed_sample_data():
+    """Seed sample data for production"""
+    import hashlib
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    try:
+        # Create Admin
+        cursor.execute('''
+            INSERT INTO users (username, email, password_hash, full_name, role, is_verified)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', ('admin', 'admin@edumind.com', hashlib.sha256('admin123'.encode()).hexdigest(), 
+              'System Administrator', 'admin', 1))
+        
+        # Create Lecturers
+        lecturers = [
+            ('johnsmith', 'john.smith@edumind.com', 'lecturer123', 'John Smith'),
+            ('sarahjohnson', 'sarah.johnson@edumind.com', 'lecturer123', 'Sarah Johnson'),
+            ('michaelbrown', 'michael.brown@edumind.com', 'lecturer123', 'Michael Brown'),
+            ('emilydavis', 'emily.davis@edumind.com', 'lecturer123', 'Emily Davis'),
+            ('davidwilson', 'david.wilson@edumind.com', 'lecturer123', 'David Wilson'),
+        ]
+        
+        for username, email, password, full_name in lecturers:
+            cursor.execute('''
+                INSERT INTO users (username, email, password_hash, full_name, role, is_verified)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (username, email, hashlib.sha256(password.encode()).hexdigest(), full_name, 'lecturer', 1))
+        
+        # Create Students
+        students = [
+            ('student1', 'student1@edumind.com', 'student123', 'Alice Anderson'),
+            ('student2', 'student2@edumind.com', 'student123', 'Bob Baker'),
+            ('student3', 'student3@edumind.com', 'student123', 'Charlie Clark'),
+            ('student4', 'student4@edumind.com', 'student123', 'Diana Davis'),
+            ('student5', 'student5@edumind.com', 'student123', 'Edward Evans'),
+        ]
+        
+        for username, email, password, full_name in students:
+            cursor.execute('''
+                INSERT INTO users (username, email, password_hash, full_name, role, is_verified)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (username, email, hashlib.sha256(password.encode()).hexdigest(), full_name, 'student', 1))
+        
+        # Get lecturer IDs
+        cursor.execute("SELECT id FROM users WHERE role = 'lecturer'")
+        lecturer_ids = [row['id'] for row in cursor.fetchall()]
+        
+        # Create Courses
+        courses = [
+            ('Introduction to Computer Science', 'Learn the fundamentals of programming', 'Computer Science', 'CS101'),
+            ('Advanced Mathematics', 'Calculus, Linear Algebra, and Differential Equations', 'Mathematics', 'MATH201'),
+            ('Web Development Fundamentals', 'HTML, CSS, JavaScript, and web frameworks', 'Web Development', 'WD101'),
+            ('Data Science and Analytics', 'Data visualization and machine learning', 'Data Science', 'DS101'),
+            ('Artificial Intelligence', 'Neural networks and deep learning', 'Artificial Intelligence', 'AI101'),
+        ]
+        
+        course_ids = []
+        for i, (title, description, subject, code) in enumerate(courses):
+            teacher_id = lecturer_ids[i % len(lecturer_ids)] if lecturer_ids else 1
+            cursor.execute('''
+                INSERT INTO courses (title, description, subject, course_code, teacher_id, is_published)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (title, description, subject, code, teacher_id, 1))
+            course_ids.append(cursor.lastrowid)
+        
+        # Create Modules
+        for course_id in course_ids:
+            for j in range(3):
+                cursor.execute('''
+                    INSERT INTO modules (course_id, name, description, year, semester)
+                    VALUES (?, ?, ?, ?, ?)
+                ''', (course_id, f'Module {j+1}', f'Learning module {j+1}', 2024, (j % 2) + 1))
+        
+        # Get module IDs
+        cursor.execute("SELECT id FROM modules")
+        module_ids = [row['id'] for row in cursor.fetchall()]
+        
+        # Create Quizzes
+        quiz_titles = ['Python Basics Quiz', 'Data Structures Quiz', 'Web Development Quiz', 'Algorithms Quiz', 'Database Quiz']
+        for i, title in enumerate(quiz_titles):
+            if i < len(module_ids):
+                cursor.execute('''
+                    INSERT INTO quizzes (title, description, module_id, difficulty)
+                    VALUES (?, ?, ?, ?)
+                ''', (title, f'Test your knowledge of {title}', module_ids[i], 'easy'))
+        
+        # Create Assignments
+        assignment_titles = ['Python Programming Assignment', 'HTML Website Project', 'Database Design Project']
+        for i, title in enumerate(assignment_titles):
+            if i < len(module_ids):
+                cursor.execute('''
+                    INSERT INTO assignments (title, description, module_id, due_date)
+                    VALUES (?, ?, ?, datetime('now', '+7 days'))
+                ''', (title, f'Complete the {title}', module_ids[i]))
+        
+        conn.commit()
+        print("Sample data seeded successfully!")
+        print("Admin: admin / admin123")
+        print("Lecturers: johnsmith / lecturer123, etc.")
+        print("Students: student1 / student123, etc.")
+        
+    except Exception as e:
+        print(f"Error seeding data: {e}")
+        conn.rollback()
+    finally:
+        conn.close()
+
 def init_db():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -1053,6 +1161,15 @@ def init_db():
     conn.commit()
     conn.close()
     print("Database initialized successfully!")
+    
+    # Auto-seed sample data if no users exist
+    conn = get_db_connection()
+    user_count = conn.execute('SELECT COUNT(*) as count FROM users').fetchone()
+    conn.close()
+    
+    if user_count['count'] == 0:
+        print("No users found - seeding sample data...")
+        seed_sample_data()
 
 # ==================== ROUTES ====================
 
