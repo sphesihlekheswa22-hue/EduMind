@@ -2999,6 +2999,77 @@ Study Tips:
     conn.close()
     return render_template('ai_summary.html', material=material, summary=summary)
 
+@app.route('/ai-notes', methods=['GET', 'POST'])
+@login_required
+def ai_notes():
+    """AI Notes Summary - Students can paste their notes and get AI summary"""
+    summary = None
+    notes = None
+    focus_area = None
+    
+    if request.method == 'POST':
+        notes = request.form.get('notes', '').strip()
+        focus_area = request.form.get('focus_area', '').strip()
+        
+        if not notes:
+            flash('Please paste some notes to summarize!', 'warning')
+            return redirect(url_for('ai_notes'))
+        
+        # Build prompt for AI
+        focus_instruction = f"Focus on: {focus_area}." if focus_area else ""
+        
+        ollama_prompt = f"""You are an AI study assistant. A student has pasted the following notes:
+
+---
+{notes}
+---
+
+{focus_instruction}
+
+Please provide a comprehensive, well-organized summary that includes:
+1. **Main Ideas**: 3-5 key concepts from the notes
+2. **Key Terms**: Important definitions or vocabulary
+3. **Important Details**: Supporting information and examples
+4. **Study Focus**: Suggestions on what to emphasize based on the focus area
+
+Format this as a clear, easy-to-study summary for exam preparation."""
+        
+        # Try Ollama first, then fallback
+        ai_summary = generate_ollama_response(ollama_prompt, max_tokens=1000)
+        
+        if ai_summary:
+            summary = ai_summary
+            print(f"[OLLAMA] Generated notes summary")
+        else:
+            # Fallback summary
+            summary = f"""**AI Study Summary**
+
+{focus_area if focus_area else 'General'} Summary of Your Notes:
+
+**Main Ideas:**
+• The notes cover important concepts related to the topic
+• Key information has been organized into study-friendly format
+• Focus on understanding the core principles presented
+
+**Key Terms to Remember:**
+• Review the important definitions in your notes
+• Pay attention to technical terms and their explanations
+
+**Important Details:**
+• The content covers foundational concepts
+• Practice related exercises to reinforce learning
+• Connect ideas with real-world examples
+
+**Study Tips:**
+1. Review these notes multiple times for retention
+2. Create flashcards for key terms
+3. Test yourself on the main concepts
+4. Discuss with peers to deepen understanding
+
+*Note: This is a template summary. For more detailed AI-powered summaries, ensure the Ollama service is running locally.*"""
+    
+    return render_template('ai_notes.html', notes=notes, focus_area=focus_area, summary=summary)
+
 @app.route('/ai-quiz-generator/<int:course_id>', methods=['GET', 'POST'])
 @login_required
 def ai_quiz_generator(course_id):

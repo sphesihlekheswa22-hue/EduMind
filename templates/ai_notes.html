@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}AI Notes Summary - EduMind AI{% endblock %}
+{% block page_title %}AI Notes Summary{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-robot me-2 text-success"></i>Paste Your Notes for AI Summary</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('ai_notes') }}">
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Paste your study notes below:</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="10" 
+                            placeholder="Paste your lecture notes, textbook excerpts, or any study material here..."
+                            required>{{ notes if notes else '' }}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="focus_area" class="form-label">What would you like to focus on? (optional)</label>
+                        <input type="text" class="form-control" id="focus_area" name="focus_area" 
+                            placeholder="e.g., key concepts, formulas, definitions, main ideas"
+                            value="{{ focus_area if focus_area else '' }}">
+                    </div>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-magic me-2"></i>Generate Summary
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        {% if summary %}
+        <div class="card mt-4">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-check-circle text-success me-2"></i>Your AI Generated Summary</h5>
+                <button class="btn btn-sm btn-outline-primary" onclick="copySummary()">
+                    <i class="bi bi-clipboard me-1"></i>Copy
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="bg-light p-4 rounded" id="summary-content">
+                    {{ summary }}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function copySummary() {
+    const summaryText = document.getElementById('summary-content').innerText;
+    navigator.clipboard.writeText(summaryText).then(function() {
+        alert('Summary copied to clipboard!');
+    }, function(err) {
+        console.error('Could not copy text: ', err);
+    });
+}
+</script>
+{% endblock %}
