@@ -218,15 +218,15 @@ def role_required(*roles):
 # ==================== DATABASE ====================
 
 def seed_sample_data():
-    """Seed sample data for production"""
+    """Seed sample data for production (idempotent)"""
     import hashlib
     conn = get_db_connection()
     cursor = conn.cursor()
     
     try:
-        # Create Admin
+        # Create Admin (INSERT OR IGNORE - won't fail if exists)
         cursor.execute('''
-            INSERT INTO users (username, email, password_hash, full_name, role, is_verified)
+            INSERT OR IGNORE INTO users (username, email, password_hash, full_name, role, is_verified)
             VALUES (?, ?, ?, ?, ?, ?)
         ''', ('admin', 'admin@edumind.com', hashlib.sha256('admin123'.encode()).hexdigest(), 
               'System Administrator', 'admin', 1))
@@ -242,7 +242,7 @@ def seed_sample_data():
         
         for username, email, password, full_name in lecturers:
             cursor.execute('''
-                INSERT INTO users (username, email, password_hash, full_name, role, is_verified)
+                INSERT OR IGNORE INTO users (username, email, password_hash, full_name, role, is_verified)
                 VALUES (?, ?, ?, ?, ?, ?)
             ''', (username, email, hashlib.sha256(password.encode()).hexdigest(), full_name, 'lecturer', 1))
         
@@ -257,7 +257,7 @@ def seed_sample_data():
         
         for username, email, password, full_name in students:
             cursor.execute('''
-                INSERT INTO users (username, email, password_hash, full_name, role, is_verified)
+                INSERT OR IGNORE INTO users (username, email, password_hash, full_name, role, is_verified)
                 VALUES (?, ?, ?, ?, ?, ?)
             ''', (username, email, hashlib.sha256(password.encode()).hexdigest(), full_name, 'student', 1))
         
@@ -278,16 +278,22 @@ def seed_sample_data():
         for i, (title, description, subject, code) in enumerate(courses):
             teacher_id = lecturer_ids[i % len(lecturer_ids)] if lecturer_ids else 1
             cursor.execute('''
-                INSERT INTO courses (title, description, subject, course_code, teacher_id, is_published)
+                INSERT OR IGNORE INTO courses (title, description, subject, course_code, teacher_id, is_published)
                 VALUES (?, ?, ?, ?, ?, ?)
             ''', (title, description, subject, code, teacher_id, 1))
-            course_ids.append(cursor.lastrowid)
+            if cursor.lastrowid:
+                course_ids.append(cursor.lastrowid)
+        
+        # If no IDs (already exist), fetch them
+        if not course_ids:
+            cursor.execute("SELECT id FROM courses")
+            course_ids = [row['id'] for row in cursor.fetchall()]
         
         # Create Modules
         for course_id in course_ids:
             for j in range(3):
                 cursor.execute('''
-                    INSERT INTO modules (course_id, name, description, year, semester)
+                    INSERT OR IGNORE INTO modules (course_id, name, description, year, semester)
                     VALUES (?, ?, ?, ?, ?)
                 ''', (course_id, f'Module {j+1}', f'Learning module {j+1}', 2024, (j % 2) + 1))
         
@@ -300,7 +306,7 @@ def seed_sample_data():
         for i, title in enumerate(quiz_titles):
             if i < len(module_ids):
                 cursor.execute('''
-                    INSERT INTO quizzes (title, description, module_id, difficulty)
+                    INSERT OR IGNORE INTO quizzes (title, description, module_id, difficulty)
                     VALUES (?, ?, ?, ?)
                 ''', (title, f'Test your knowledge of {title}', module_ids[i], 'easy'))
         
@@ -309,7 +315,7 @@ def seed_sample_data():
         for i, title in enumerate(assignment_titles):
             if i < len(module_ids):
                 cursor.execute('''
-                    INSERT INTO assignments (title, description, module_id, due_date)
+                    INSERT OR IGNORE INTO assignments (title, description, module_id, due_date)
                     VALUES (?, ?, ?, datetime('now', '+7 days'))
                 ''', (title, f'Complete the {title}', module_ids[i]))
         
@@ -1162,14 +1168,10 @@ def init_db():
     conn.close()
     print("Database initialized successfully!")
     
-    # Auto-seed sample data if no users exist
-    conn = get_db_connection()
-    user_count = conn.execute('SELECT COUNT(*) as count FROM users').fetchone()
-    conn.close()
-    
-    if user_count['count'] == 0:
-        print("No users found - seeding sample data...")
-        seed_sample_data()
+    # Always seed sample data (idempotent - uses INSERT OR IGNORE)
+    # This ensures data exists even if database was lost (Render free tier)
+    print("Seeding sample data...")
+    seed_sample_data()
 
 # ==================== ROUTES ====================
 
