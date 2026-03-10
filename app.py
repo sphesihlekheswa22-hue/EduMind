@@ -89,11 +89,59 @@ def get_db_connection():
 OLLAMA_API_URL = 'http://localhost:11434/api/generate'
 OLLAMA_MODEL = 'phi'  # Smaller, faster model that works well on weaker GPUs
 
+# Google Gemini API Configuration
+GEMINI_API_KEY = 'AIzaSyCKr-mpGshEn8Z6vDCIl9hiTdrh3GwkvNY'  # User provided key
+GEMINI_MODEL = 'gemini-1.5-flash'
+
+def generate_gemini_response(prompt, system_prompt=None, max_tokens=500):
+    """
+    Generate response using Google Gemini API
+    Returns None if API key is invalid or quota exceeded
+    """
+    try:
+        import google.generativeai as genai
+        
+        # Configure the API
+        genai.configure(api_key=GEMINI_API_KEY)
+        
+        # Create the model
+        model = genai.GenerativeModel(GEMINI_MODEL)
+        
+        # Build the full prompt
+        full_prompt = prompt
+        if system_prompt:
+            full_prompt = f"System: {system_prompt}\n\nUser: {prompt}"
+        
+        # Generate response
+        response = model.generate_content(
+            full_prompt,
+            generation_config={
+                'max_output_tokens': max_tokens,
+                'temperature': 0.7,
+            }
+        )
+        
+        if response and response.text:
+            return response.text.strip()
+        return None
+        
+    except Exception as e:
+        print(f"[GEMINI] Error: {str(e)}")
+        return None
+
 def generate_ollama_response(prompt, system_prompt=None, max_tokens=500):
     """
-    Generate response using local Ollama API
-    Falls back to built-in generator if Ollama is unavailable
+    Generate response using Ollama API or Google Gemini API
+    Tries Gemini first, then falls back to Ollama
     """
+    # Try Google Gemini first (works in production)
+    gemini_response = generate_gemini_response(prompt, system_prompt, max_tokens)
+    if gemini_response:
+        print("[GEMINI] Generated response successfully")
+        return gemini_response
+    
+    # Fall back to Ollama (only works locally)
+    try:
     try:
         payload = {
             'model': OLLAMA_MODEL,

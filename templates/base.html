@@ -733,7 +733,7 @@
            
            {% if session.role == 'student' %}
            <a href="/ai-chat" class="sidebar-link {% if '/ai-chat' in request.path %}active{% endif %}">
-               <i class="bi bi-robot"></i> AI Study Assistant
+               <i class="bi bi-robot"></i> AI Study Assistant</a><a href="/ai-notes" class="sidebar-link"><i class="bi bi-file-text"></i> AI Notes Summary
            </a>
            {% endif %}
            
